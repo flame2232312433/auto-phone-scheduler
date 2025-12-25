@@ -43,32 +43,6 @@ class StreamingModelClient:
         time_to_first_token = None
         time_to_thinking_end = None
 
-        # 调试：打印请求信息
-        logger.info(f"[API请求] model={self.config.model_name}, messages数量={len(messages)}")
-        for i, msg in enumerate(messages):
-            role = msg.get("role", "unknown")
-            content = msg.get("content", "")
-            # 处理多模态内容（图片）
-            if isinstance(content, list):
-                parts_info = []
-                for part in content:
-                    if isinstance(part, dict):
-                        if part.get("type") == "image_url":
-                            img_url = part.get("image_url", {}).get("url", "")
-                            if img_url.startswith("data:"):
-                                parts_info.append(f"[图片 base64, 长度={len(img_url)}]")
-                            else:
-                                parts_info.append(f"[图片 URL: {img_url[:50]}...]")
-                        elif part.get("type") == "text":
-                            text = part.get("text", "")
-                            parts_info.append(f"[文本: {text[:100]}...]" if len(text) > 100 else f"[文本: {text}]")
-                        else:
-                            parts_info.append(f"[{part.get('type', 'unknown')}]")
-                logger.info(f"  [{i}] role={role}, content={parts_info}")
-            else:
-                content_preview = content[:200] + "..." if len(str(content)) > 200 else content
-                logger.info(f"  [{i}] role={role}, content={content_preview}")
-
         stream = self.client.chat.completions.create(
             messages=messages,
             model=self.config.model_name,
