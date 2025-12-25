@@ -84,8 +84,9 @@ class StreamingModelClient:
                 marker_found = False
                 for marker in action_markers:
                     if marker in buffer:
-                        # 找到标记，发送之前的 thinking 部分
+                        # 找到标记，发送之前的 thinking 部分（清理 XML 标签）
                         thinking_part = buffer.split(marker, 1)[0]
+                        thinking_part = self._clean_stream_content(thinking_part)
                         if thinking_part and self.token_callback:
                             self.token_callback("thinking", thinking_part)
 
@@ -115,10 +116,11 @@ class StreamingModelClient:
                         break
 
                 if not is_potential_marker:
-                    # 安全发送 buffer
-                    if buffer and self.token_callback:
-                        self.token_callback("thinking", buffer)
-                    buffer = ""
+                    # 安全发送 buffer（清理 XML 标签，保留可能的标签前缀）
+                    cleaned, remaining = self._clean_stream_buffer(buffer)
+                    if cleaned and self.token_callback:
+                        self.token_callback("thinking", cleaned)
+                    buffer = remaining
 
         # 计算总时间
         total_time = time.time() - start_time
@@ -142,24 +144,98 @@ class StreamingModelClient:
             parts = content.split("finish(message=", 1)
             thinking = parts[0].strip()
             action = "finish(message=" + parts[1]
-            return thinking, action
+            return self._clean_thinking(thinking), self._clean_action(action)
 
         # 规则 2: 检查 do(action=
         if "do(action=" in content:
             parts = content.split("do(action=", 1)
             thinking = parts[0].strip()
             action = "do(action=" + parts[1]
-            return thinking, action
+            return self._clean_thinking(thinking), self._clean_action(action)
 
         # 规则 3: 回退到 XML 标签解析
         if "<answer>" in content:
             parts = content.split("<answer>", 1)
-            thinking = parts[0].replace("<think>", "").replace("</think>", "").strip()
-            action = parts[1].replace("</answer>", "").strip()
-            return thinking, action
+            thinking = parts[0].strip()
+            action = parts[1].strip()
+            return self._clean_thinking(thinking), self._clean_action(action)
 
         # 规则 4: 没有找到标记
-        return "", content
+        return "", self._clean_action(content)
+
+    def _clean_stream_content(self, content: str) -> str:
+        """清理流式内容中的 XML 标签（用于一次性发送的内容）"""
+        import re
+        # 移除完整的 XML 标签
+        cleaned = re.sub(r'</?[a-zA-Z_][a-zA-Z0-9_]*>', '', content)
+        return cleaned
+
+    def _clean_stream_buffer(self, buffer: str) -> tuple[str, str]:
+        """
+        清理流式 buffer 中的 XML 标签，返回 (可发送的内容, 需保留的内容)。
+
+        保留可能是标签开始的内容，避免截断标签。
+        """
+        import re
+
+        # 首先移除完整的 XML 标签
+        cleaned = re.sub(r'</?[a-zA-Z_][a-zA-Z0-9_]*>', '', buffer)
+
+        # 检查末尾是否可能是标签的开始
+        # 匹配 < 后面跟着可能的标签名前缀
+        match = re.search(r'</?[a-zA-Z_][a-zA-Z0-9_]*$', cleaned)
+        if match:
+            # 保留可能的标签前缀
+            return cleaned[:match.start()], cleaned[match.start():]
+
+        # 只有 < 也需要保留
+        if cleaned.endswith('<'):
+            return cleaned[:-1], '<'
+
+        return cleaned, ""
+
+    def _clean_thinking(self, thinking: str) -> str:
+        """清理 thinking 字符串中的 XML 标签"""
+        import re
+
+        cleaned = thinking
+
+        # 移除常见的 XML 标签
+        tags_to_remove = [
+            "</think>", "<think>",
+            "</answer>", "<answer>",
+            "</response>", "<response>",
+            "</reasoning>", "<reasoning>",
+        ]
+        for tag in tags_to_remove:
+            cleaned = cleaned.replace(tag, "")
+
+        # 使用正则移除任何残留的 XML 标签
+        cleaned = re.sub(r'</?[a-zA-Z_][a-zA-Z0-9_]*>', '', cleaned)
+
+        return cleaned.strip()
+
+    def _clean_action(self, action: str) -> str:
+        """清理 action 字符串中的 XML 标签和其他工件"""
+        import re
+
+        cleaned = action
+
+        # 移除常见的 XML 标签
+        tags_to_remove = [
+            "</answer>", "<answer>",
+            "</think>", "<think>",
+            "</response>", "<response>",
+            "</action>", "<action>",
+            "</output>", "<output>",
+        ]
+        for tag in tags_to_remove:
+            cleaned = cleaned.replace(tag, "")
+
+        # 使用正则移除任何残留的 XML 标签
+        cleaned = re.sub(r'</?[a-zA-Z_][a-zA-Z0-9_]*>', '', cleaned)
+
+        return cleaned.strip()
 
 
 def patch_phone_agent(token_callback: Callable[[str, str], None] | None = None):

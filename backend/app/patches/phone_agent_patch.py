@@ -8,6 +8,7 @@ Some models return action with XML tags like </answer> that need to be cleaned.
 def apply_patches():
     """Apply all patches to phone_agent library."""
     _patch_model_client_parse_response()
+    _patch_parse_action()
     _extend_app_packages()
 
 
@@ -38,6 +39,54 @@ def _patch_model_client_parse_response():
         return thinking, action
 
     ModelClient._parse_response = patched_parse_response
+
+
+def _clean_action_string(action: str) -> str:
+    """
+    Clean XML tags and other common artifacts from action string.
+
+    Handles patterns like:
+        do(action="Tap", element=[614,818])</answer>
+        <answer>do(action="Tap", element=[614,818])</answer>
+    """
+    import re
+
+    cleaned = action
+
+    # Remove common XML-like tags
+    tags_to_remove = [
+        "</answer>", "<answer>",
+        "</think>", "<think>",
+        "</response>", "<response>",
+        "</action>", "<action>",
+        "</output>", "<output>",
+    ]
+    for tag in tags_to_remove:
+        cleaned = cleaned.replace(tag, "")
+
+    # Remove any remaining XML-like tags using regex
+    cleaned = re.sub(r'</?[a-zA-Z_][a-zA-Z0-9_]*>', '', cleaned)
+
+    return cleaned.strip()
+
+
+def _patch_parse_action():
+    """
+    Patch parse_action in handler.py to clean input before parsing.
+
+    This is a more robust fix as it handles the action right before AST parsing,
+    regardless of how the action string was produced.
+    """
+    from phone_agent.actions import handler
+
+    original_parse_action = handler.parse_action
+
+    def patched_parse_action(response: str):
+        # Clean the action string before parsing
+        cleaned_response = _clean_action_string(response)
+        return original_parse_action(cleaned_response)
+
+    handler.parse_action = patched_parse_action
 
 
 def _extend_app_packages():
