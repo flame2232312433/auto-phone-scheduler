@@ -130,14 +130,16 @@ class SchedulerService:
             self.scheduler.remove_job(job_id)
 
         if task.enabled:
-            # 解析 cron 表达式
+            # 解析 cron 表达式，使用本地时区
             cron_parts = task.cron_expression.split()
+            local_tz = datetime.now().astimezone().tzinfo
             trigger = CronTrigger(
                 minute=cron_parts[0] if len(cron_parts) > 0 else "*",
                 hour=cron_parts[1] if len(cron_parts) > 1 else "*",
                 day=cron_parts[2] if len(cron_parts) > 2 else "*",
                 month=cron_parts[3] if len(cron_parts) > 3 else "*",
                 day_of_week=cron_parts[4] if len(cron_parts) > 4 else "*",
+                timezone=local_tz,
             )
 
             self.scheduler.add_job(
