@@ -21,6 +21,14 @@ class Task(Base):
     auto_confirm_sensitive: Mapped[bool] = mapped_column(Boolean, default=True)
     # 指定执行设备 serial，为空则使用全局设置的设备
     device_serial: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    # 随机执行时间区间（分钟），在 cron 触发后延迟 0~random_delay_minutes 分钟执行
+    random_delay_minutes: Mapped[int | None] = mapped_column(nullable=True, default=None)
+    # 执行前唤醒设备（使用设备配置中的唤醒命令）
+    wake_before_run: Mapped[bool] = mapped_column(Boolean, default=True)
+    # 执行前解锁设备（使用设备配置中的解锁命令）
+    unlock_before_run: Mapped[bool] = mapped_column(Boolean, default=True)
+    # 执行完成后返回主屏幕
+    go_home_after_run: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow

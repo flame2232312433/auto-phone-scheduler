@@ -19,6 +19,8 @@ import type {
   AppPackage,
   AppPackageCreate,
   AppPackageUpdate,
+  DeviceConfig,
+  DeviceConfigUpdate,
 } from '@/types'
 
 const api = axios.create({
@@ -64,6 +66,15 @@ export const notificationsApi = {
   test: (id: number) => api.post(`/notifications/${id}/test`),
 }
 
+// 设备忙碌状态
+export interface DeviceBusyStatus {
+  is_busy: boolean
+  execution_id: number | null
+  task_id: number | null
+  task_name: string | null
+  started_at: string | null
+}
+
 // Devices
 export const devicesApi = {
   list: () => api.get<Device[]>('/devices').then(r => r.data),
@@ -81,6 +92,13 @@ export const devicesApi = {
     }).then(r => r.data),
   sendTap: (serial: string, x: number, y: number) =>
     api.post(`/devices/${encodeURIComponent(serial)}/tap`, { x, y }).then(r => r.data),
+  // 设备忙碌状态
+  getBusyStatus: (serial: string) =>
+    api.get<DeviceBusyStatus>(`/devices/${encodeURIComponent(serial)}/busy-status`).then(r => r.data),
+  release: (serial: string) =>
+    api.post<{ success: boolean; message: string; released_count: number }>(
+      `/devices/${encodeURIComponent(serial)}/release`
+    ).then(r => r.data),
 }
 
 // Settings
@@ -140,4 +158,28 @@ export const appPackagesApi = {
   update: (id: number, data: AppPackageUpdate) =>
     api.put<AppPackage>(`/app-packages/${id}`, data).then(r => r.data),
   delete: (id: number) => api.delete(`/app-packages/${id}`),
+}
+
+// Device Configs (设备唤醒解锁配置)
+export const deviceConfigsApi = {
+  list: () => api.get<DeviceConfig[]>('/device-configs').then(r => r.data),
+  get: (serial: string) => api.get<DeviceConfig | null>(`/device-configs/${encodeURIComponent(serial)}`).then(r => r.data),
+  update: (serial: string, data: DeviceConfigUpdate) =>
+    api.put<DeviceConfig>(`/device-configs/${encodeURIComponent(serial)}`, data).then(r => r.data),
+  delete: (serial: string) => api.delete(`/device-configs/${encodeURIComponent(serial)}`),
+  getScreenStatus: (serial: string) =>
+    api.get<{ screen_on: boolean; is_locked: boolean }>(`/device-configs/${encodeURIComponent(serial)}/screen-status`).then(r => r.data),
+  testWake: (serial: string, data: { wake_command?: string }) =>
+    api.post<{ success: boolean; message: string }>(`/device-configs/${encodeURIComponent(serial)}/test-wake`, data).then(r => r.data),
+  testUnlock: (serial: string, data: {
+    unlock_type: string
+    unlock_start_x: number
+    unlock_start_y: number
+    unlock_end_x?: number
+    unlock_end_y?: number
+    unlock_duration: number
+  }) =>
+    api.post<{ success: boolean; message: string }>(`/device-configs/${encodeURIComponent(serial)}/test-unlock`, data).then(r => r.data),
+  lockScreen: (serial: string) =>
+    api.post<{ success: boolean; message: string }>(`/device-configs/${encodeURIComponent(serial)}/lock`).then(r => r.data),
 }

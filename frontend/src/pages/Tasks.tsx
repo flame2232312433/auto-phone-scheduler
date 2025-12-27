@@ -275,6 +275,10 @@ function TaskList() {
     notify_on_failure: true,
     notification_channel_ids: null,
     auto_confirm_sensitive: true,
+    random_delay_minutes: null,
+    device_serial: null,
+    wake_before_run: true,
+    unlock_before_run: true,
   })
 
   const { data: tasks = [], isLoading } = useQuery({
@@ -342,6 +346,10 @@ function TaskList() {
       notification_channel_ids: null,
       auto_confirm_sensitive: true,
       device_serial: null,
+      random_delay_minutes: null,
+      wake_before_run: true,
+      unlock_before_run: true,
+      go_home_after_run: false,
     })
     setIsDialogOpen(true)
   }
@@ -362,6 +370,10 @@ function TaskList() {
       notification_channel_ids: null,
       auto_confirm_sensitive: true,
       device_serial: null,
+      random_delay_minutes: null,
+      wake_before_run: true,
+      unlock_before_run: true,
+      go_home_after_run: false,
     })
     setIsTemplateDialogOpen(false)
     setIsDialogOpen(true)
@@ -380,6 +392,10 @@ function TaskList() {
       notification_channel_ids: task.notification_channel_ids,
       auto_confirm_sensitive: task.auto_confirm_sensitive,
       device_serial: task.device_serial,
+      random_delay_minutes: task.random_delay_minutes,
+      wake_before_run: task.wake_before_run,
+      unlock_before_run: task.unlock_before_run,
+      go_home_after_run: task.go_home_after_run,
     })
     setIsDialogOpen(true)
   }
@@ -496,12 +512,17 @@ function TaskList() {
                       {task.command}
                     </code>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Clock className="h-4 w-4 text-muted-foreground" />
                     <span className="text-muted-foreground">Cron:</span>
                     <code className="bg-muted px-2 py-1 rounded text-xs">
                       {task.cron_expression}
                     </code>
+                    {task.random_delay_minutes && task.random_delay_minutes > 0 && (
+                      <span className="text-xs text-orange-500">
+                        (随机延迟 0~{task.random_delay_minutes} 分钟)
+                      </span>
+                    )}
                     {task.next_run && (
                       <span className="text-muted-foreground">
                         下次运行: {formatDateTime(task.next_run)}
@@ -647,6 +668,37 @@ function TaskList() {
               </div>
             </div>
 
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="random_delay">随机延迟 (分钟)</Label>
+                <span className="text-xs text-muted-foreground">
+                  (在 Cron 触发后随机延迟执行，增加随机性)
+                </span>
+              </div>
+              <div className="flex gap-2 items-center">
+                <Input
+                  id="random_delay"
+                  type="number"
+                  min="0"
+                  max="120"
+                  value={formData.random_delay_minutes ?? ''}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      random_delay_minutes: e.target.value ? parseInt(e.target.value, 10) : null,
+                    })
+                  }
+                  placeholder="不延迟"
+                  className="w-24"
+                />
+                <span className="text-sm text-muted-foreground">
+                  {formData.random_delay_minutes
+                    ? `将在 0~${formData.random_delay_minutes} 分钟内随机执行`
+                    : '准时执行'}
+                </span>
+              </div>
+            </div>
+
             <div className="flex items-center justify-between">
               <Label htmlFor="enabled">启用任务</Label>
               <Switch
@@ -709,6 +761,55 @@ function TaskList() {
                     ))}
                 </SelectContent>
               </Select>
+
+              {/* 唤醒和解锁选项 */}
+              <div className="pl-6 space-y-3 pt-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="wake_before_run">执行前唤醒设备</Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      使用设备配置中的唤醒命令
+                    </p>
+                  </div>
+                  <Switch
+                    id="wake_before_run"
+                    checked={formData.wake_before_run}
+                    onCheckedChange={(checked) =>
+                      setFormData({ ...formData, wake_before_run: checked })
+                    }
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="unlock_before_run">执行前解锁设备</Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      使用设备配置中的解锁命令
+                    </p>
+                  </div>
+                  <Switch
+                    id="unlock_before_run"
+                    checked={formData.unlock_before_run}
+                    onCheckedChange={(checked) =>
+                      setFormData({ ...formData, unlock_before_run: checked })
+                    }
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="go_home_after_run">执行后返回主屏幕</Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      任务完成后自动返回桌面
+                    </p>
+                  </div>
+                  <Switch
+                    id="go_home_after_run"
+                    checked={formData.go_home_after_run}
+                    onCheckedChange={(checked) =>
+                      setFormData({ ...formData, go_home_after_run: checked })
+                    }
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="flex items-center justify-between">

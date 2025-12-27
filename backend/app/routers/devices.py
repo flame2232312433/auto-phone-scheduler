@@ -1,12 +1,16 @@
 import asyncio
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import StreamingResponse, Response
 from pydantic import BaseModel
 from typing import Literal
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.database import get_db
 from app.schemas.device import DeviceInfo
 from app.services.adb import run_adb, run_adb_exec
 from app.services.streamer import generate_mjpeg_stream
+from app.models.execution import Execution, ExecutionStatus
 
 router = APIRouter(prefix="/api/devices", tags=["devices"])
 
@@ -84,14 +88,9 @@ async def list_devices():
 
 @router.post("/refresh", response_model=list[DeviceInfo])
 async def refresh_devices():
-    """刷新设备列表"""
-    # 重启 ADB 服务器以刷新设备（仅在本地模式下有效）
-    await run_adb("kill-server")
-    await run_adb("start-server")
-
-    # 等待设备连接
-    await asyncio.sleep(2)
-
+    """刷新设备列表（不重启ADB服务器，保持WiFi连接）"""
+    # 直接返回当前连接的设备列表，不重启 ADB 服务器
+    # 因为重启服务器会断开所有 WiFi 连接的设备
     return await get_connected_devices()
 
 
@@ -245,3 +244,72 @@ async def send_tap(serial: str, request: TapRequest):
         return {"success": True, "message": "点击完成"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"点击失败: {str(e)}")
+
+
+class DeviceBusyStatus(BaseModel):
+    is_busy: bool
+    execution_id: int | None = None
+    task_id: int | None = None
+    task_name: str | None = None
+    started_at: str | None = None
+
+
+@router.get("/{serial}/busy-status", response_model=DeviceBusyStatus)
+async def get_device_busy_status(serial: str, db: AsyncSession = Depends(get_db)):
+    """获取设备的忙碌状态（是否有正在执行的任务）"""
+    from sqlalchemy.orm import joinedload
+
+    result = await db.execute(
+        select(Execution)
+        .options(joinedload(Execution.task))
+        .where(
+            Execution.device_serial == serial,
+            Execution.status == ExecutionStatus.RUNNING,
+        )
+        .limit(1)
+    )
+    running_execution = result.scalar_one_or_none()
+
+    if running_execution:
+        return DeviceBusyStatus(
+            is_busy=True,
+            execution_id=running_execution.id,
+            task_id=running_execution.task_id,
+            task_name=running_execution.task.name if running_execution.task else None,
+            started_at=running_execution.started_at.isoformat() if running_execution.started_at else None,
+        )
+
+    return DeviceBusyStatus(is_busy=False)
+
+
+@router.post("/{serial}/release")
+async def release_device(serial: str, db: AsyncSession = Depends(get_db)):
+    """释放设备（将所有 RUNNING 状态的执行记录标记为失败）
+
+    用于手动清除卡住的任务状态
+    """
+    from datetime import datetime
+
+    result = await db.execute(
+        select(Execution).where(
+            Execution.device_serial == serial,
+            Execution.status == ExecutionStatus.RUNNING,
+        )
+    )
+    running_executions = result.scalars().all()
+
+    if not running_executions:
+        return {"success": True, "message": "设备未被占用", "released_count": 0}
+
+    for execution in running_executions:
+        execution.status = ExecutionStatus.FAILED
+        execution.finished_at = datetime.utcnow()
+        execution.error_message = "手动释放设备"
+
+    await db.commit()
+
+    return {
+        "success": True,
+        "message": f"已释放 {len(running_executions)} 个执行记录",
+        "released_count": len(running_executions),
+    }

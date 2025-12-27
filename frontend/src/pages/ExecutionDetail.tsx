@@ -95,8 +95,8 @@ function convertStepsToChatItems(steps: ExecutionStep[]): ChatItem[] {
       })
     }
 
-    // 添加动作卡片
-    if (action) {
+    // 添加动作卡片（SystemLog 类型不显示动作卡片，只显示消息）
+    if (action && (action.action as string)?.toLowerCase() !== 'systemlog') {
       items.push({
         id: id++,
         type: 'action',
@@ -208,8 +208,14 @@ export function ExecutionDetail() {
     eventSource.addEventListener('step', (event) => {
       const step = JSON.parse(event.data) as ExecutionStep
       setStreamSteps(prev => {
-        // 避免重复添加
-        if (prev.some(s => s.step === step.step)) return prev
+        // 避免重复添加：对于 SystemLog (step=0) 使用 timestamp 判重，其他用 step 判重
+        if (step.step === 0) {
+          // SystemLog 使用 timestamp 判重
+          if (prev.some(s => s.step === 0 && s.timestamp === step.timestamp)) return prev
+        } else {
+          // 普通步骤使用 step 判重
+          if (prev.some(s => s.step === step.step)) return prev
+        }
         return [...prev, step]
       })
       // 清除该步骤的流式状态
