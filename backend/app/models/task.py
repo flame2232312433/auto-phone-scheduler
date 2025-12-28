@@ -12,6 +12,8 @@ class Task(Base):
     description: Mapped[str] = mapped_column(Text, nullable=True)
     command: Mapped[str] = mapped_column(Text, nullable=False)
     cron_expression: Mapped[str] = mapped_column(String(100), nullable=False)
+    # 任务执行时区，IANA 时区名称如 "Asia/Shanghai"，为空则使用服务器本地时区
+    timezone: Mapped[str | None] = mapped_column(String(50), nullable=True)
     enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     notify_on_success: Mapped[bool] = mapped_column(Boolean, default=False)
     notify_on_failure: Mapped[bool] = mapped_column(Boolean, default=True)

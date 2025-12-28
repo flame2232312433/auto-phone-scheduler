@@ -6,6 +6,7 @@ import queue
 import threading
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
+from zoneinfo import ZoneInfo
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -148,16 +149,23 @@ class SchedulerService:
             self.scheduler.remove_job(job_id)
 
         if task.enabled:
-            # 解析 cron 表达式，使用本地时区
+            # 解析 cron 表达式，使用任务指定的时区或服务器本地时区
             cron_parts = task.cron_expression.split()
-            local_tz = datetime.now().astimezone().tzinfo
+            if task.timezone:
+                try:
+                    tz = ZoneInfo(task.timezone)
+                except Exception:
+                    # 无效时区，回退到服务器本地时区
+                    tz = datetime.now().astimezone().tzinfo
+            else:
+                tz = datetime.now().astimezone().tzinfo
             trigger = CronTrigger(
                 minute=cron_parts[0] if len(cron_parts) > 0 else "*",
                 hour=cron_parts[1] if len(cron_parts) > 1 else "*",
                 day=cron_parts[2] if len(cron_parts) > 2 else "*",
                 month=cron_parts[3] if len(cron_parts) > 3 else "*",
                 day_of_week=cron_parts[4] if len(cron_parts) > 4 else "*",
-                timezone=local_tz,
+                timezone=tz,
             )
 
             # 如果设置了随机延迟，使用包装器函数

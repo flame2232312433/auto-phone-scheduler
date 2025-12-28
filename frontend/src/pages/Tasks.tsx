@@ -407,10 +407,15 @@ function TaskList() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    // 自动添加浏览器时区
+    const dataWithTimezone = {
+      ...formData,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    }
     if (editingTask) {
-      updateMutation.mutate({ id: editingTask.id, data: formData })
+      updateMutation.mutate({ id: editingTask.id, data: dataWithTimezone })
     } else {
-      createMutation.mutate(formData)
+      createMutation.mutate(dataWithTimezone)
     }
   }
 

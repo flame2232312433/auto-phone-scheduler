@@ -4,6 +4,7 @@ export interface Task {
   description: string | null
   command: string
   cron_expression: string
+  timezone: string | null  // IANA 时区名称
   enabled: boolean
   notify_on_success: boolean
   notify_on_failure: boolean
@@ -24,6 +25,7 @@ export interface TaskCreate {
   description?: string
   command: string
   cron_expression: string
+  timezone?: string  // IANA 时区名称
   enabled?: boolean
   notify_on_success?: boolean
   notify_on_failure?: boolean
@@ -41,6 +43,7 @@ export interface TaskUpdate {
   description?: string
   command?: string
   cron_expression?: string
+  timezone?: string
   enabled?: boolean
   notify_on_success?: boolean
   notify_on_failure?: boolean

@@ -7,6 +7,7 @@ class TaskBase(BaseModel):
     description: str | None = None
     command: str
     cron_expression: str = Field(..., max_length=100)
+    timezone: str | None = None  # IANA 时区名称，如 "Asia/Shanghai"
     enabled: bool = True
     notify_on_success: bool = False
     notify_on_failure: bool = True
@@ -28,6 +29,7 @@ class TaskUpdate(BaseModel):
     description: str | None = None
     command: str | None = None
     cron_expression: str | None = Field(None, max_length=100)
+    timezone: str | None = None
     enabled: bool | None = None
     notify_on_success: bool | None = None
     notify_on_failure: bool | None = None
