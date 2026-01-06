@@ -439,13 +439,14 @@ class DeviceConnectionManager:
         device_info["reconnect_attempts"] += 1
 
         try:
-            logger.info(f"正在重连设备 {address} (尝试 {device_info['reconnect_attempts']}/{self.MAX_RECONNECT_ATTEMPTS})")
+            attempt = device_info["reconnect_attempts"]
+            logger.info(f"正在重连设备 {address} (尝试 {attempt}/{self.MAX_RECONNECT_ATTEMPTS})")
 
-            # 先断开再连接（确保干净的状态）
+            # 先断开连接
             await run_adb("disconnect", address)
             await asyncio.sleep(1)
 
-            # 尝试连接
+            # 第一次尝试直接连接
             stdout, stderr = await run_adb("connect", address)
             output = stdout.decode() + stderr.decode()
 
@@ -457,12 +458,31 @@ class DeviceConnectionManager:
                 if self._on_status_change:
                     self._on_status_change(address, "reconnecting", "connected")
             else:
-                logger.warning(f"设备 {address} 重连失败: {output.strip()}")
-                device_info["status"] = "disconnected"
+                # 首次连接失败，尝试 kill-server 重置 ADB
+                logger.warning(f"设备 {address} 连接失败: {output.strip()}，尝试重置 ADB server")
+                await run_adb("kill-server")
+                await asyncio.sleep(2)
+                await run_adb("start-server")
+                await asyncio.sleep(1)
 
-                # 延迟后再尝试
-                if device_info["reconnect_attempts"] < self.MAX_RECONNECT_ATTEMPTS:
-                    await asyncio.sleep(self.RECONNECT_INTERVAL)
+                # 再次尝试连接
+                stdout, stderr = await run_adb("connect", address)
+                output = stdout.decode() + stderr.decode()
+
+                if "connected" in output.lower() and "cannot" not in output.lower():
+                    logger.info(f"设备 {address} 重连成功（通过重置 ADB server）")
+                    device_info["status"] = "connected"
+                    device_info["last_seen"] = datetime.now()
+                    device_info["reconnect_attempts"] = 0
+                    if self._on_status_change:
+                        self._on_status_change(address, "reconnecting", "connected")
+                else:
+                    logger.warning(f"设备 {address} 重连失败: {output.strip()}")
+                    device_info["status"] = "disconnected"
+
+                    # 延迟后再尝试
+                    if device_info["reconnect_attempts"] < self.MAX_RECONNECT_ATTEMPTS:
+                        await asyncio.sleep(self.RECONNECT_INTERVAL)
         except Exception as e:
             logger.error(f"重连设备 {address} 时出错: {e}")
             device_info["status"] = "disconnected"
